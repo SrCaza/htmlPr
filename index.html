@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FerContable</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1>FerContable</h1>
+                    <p style="opacity: 0.8; margin-top: 5px;">Sistema Integral de Gestión Empresarial</p>
+                </div>
+                <div class="header-stats">
+                    <div class="header-stat">
+                        <div class="value" id="headerVentas">$0</div>
+                        <div class="label">Ventas Hoy</div>
+                    </div>
+                    <div class="header-stat">
+                        <div class="value" id="headerProductos">0</div>
+                        <div class="label">Productos</div>
+                    </div>
+                    <div class="header-stat">
+                        <div class="value" id="headerClientes">0</div>
+                        <div class="label">Clientes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button class="nav-tab" onclick="showTab('caja')">🗃 Caja</button>
+            <!-- unificar --><button class="nav-tab" onclick="showTab('ventas')">💰 Ventas</button>
+            <!-- unificar <button class="nav-tab" onclick="showTab('facturacion')">🧾 Facturación</button>  -->
+            <button class="nav-tab" onclick="showTab('creditos')">💳 Créditos/CxC</button>
+            <button class="nav-tab" onclick="showTab('cxp')">💸 Cuentas x Pagar</button>
+            <button class="nav-tab" onclick="showTab('inventario')">📦 Inventario</button>
+            <button class="nav-tab" onclick="showTab('clientes')">👥 Clientes</button>
+            <button class="nav-tab" onclick="showTab('proveedores')">🤝 Proveedores</button>
+            <button class="nav-tab" onclick="showTab('alertas')">🔔 Alertas</button>
+            <button class="nav-tab" onclick="showTab('reportes')">📈 Reportes</button>
+            <button class="nav-tab" onclick="showTab('usuarios')">👤 Usuarios</button>
+          <!--    <button class="nav-tab" onclick="showTab('configuracion')">⚙ Configuración</button> -->
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <div class="summary-grid">
+                <div class="summary-card income">
+                    <h3>Ventas del Mes</h3>
+                    <div class="amount" id="ventasMes">$0</div>
+                </div>
+                <div class="summary-card expense">
+                    <h3>Gastos del Mes</h3>
+                    <div class="amount" id="gastosMes">$0</div>
+                </div>
+                <div class="summary-card profit">
+                    <h3>Utilidad Neta</h3>
+                    <div class="amount" id="utilidadMes">$0</div>
+                </div>
+                <div class="summary-card inventory">
+                    <h3>Valor Inventario</h3>
+                    <div class="amount" id="valorInventario">$0</div>
+                </div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>🚀 Acciones Rápidas</h3>
+                    <div class="quick-actions">
+                        <button class="btn btn-success" onclick="showTab('ventas')">💵 Nueva Venta</button>
+                        <button class="btn" onclick="showTab('inventario')">📦 Agregar Producto</button>
+                        <button class="btn btn-warning" onclick="showTab('clientes')">👤 Nuevo Cliente</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>⚠ Alertas de Inventario</h3>
+                    <div id="alertasInventario">
+                        <p style="color: #6b7280; text-align: center; padding: 20px;">
+                            No hay alertas de inventario
+                        </p>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>📊 Productos Más Vendidos</h3>
+                    <div id="topProductos">
+                        <p style="color: #6b7280; text-align: center; padding: 20px;">
+                            No hay datos de ventas aún
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Caja -->
+        <div id="caja" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>🗃 Registro de Caja</h2>
+                    <form id="cajaForm">
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <select id="cajaTipo" required>
+                                <option value="ingreso">Ingreso</option>
+                                <option value="egreso">Egreso</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Monto</label>
+                            <input type="number" id="cajaMonto" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Concepto</label>
+                            <input type="text" id="cajaConcepto" required>
+                        </div>
+                        <button type="submit" class="btn btn-success" style="width: 100%;">Registrar Movimiento</button>
+                    </form>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📋 Movimientos de Caja</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Monto</th>
+                                    <th>Concepto</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cajaTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
+                                        No hay movimientos registrados
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <strong>Saldo Actual:</strong> <span id="cajaSaldo">$0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ventas -->
+        <div id="ventas" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>💰 Nueva Venta</h2>
+                    <form id="ventaForm">
+                        <div class="form-group">
+                            <label>Cliente</label>
+                            <select id="ventaCliente" required>
+                                <option value="">Seleccionar cliente...</option>
+                                <option value="general">Cliente General</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Producto</label>
+                                <select id="ventaProducto" required>
+                                    <option value="">Seleccionar producto...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cantidad</label>
+                                <input type="number" id="ventaCantidad" min="1" value="1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Precio Unitario</label>
+                                <input type="number" id="ventaPrecio" step="1" min="0" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Total</label>
+                                <input type="number" id="ventaTotal" step="1" min="0" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Método de Pago</label>
+                            <select id="ventaMetodoPago" required>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="credito">Crédito</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success" style="width: 100%;">💵 Procesar Venta</button>
+                    </form>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📝 Historial de Ventas</h2>
+                    <div class="search-bar">
+                        <input type="text" id="searchVentas" placeholder="Buscar ventas...">
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Total</th>
+                                    <th>Método Pago</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ventasTableBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 40px; color: #6b7280;">
+                                        No hay ventas registradas
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Facturación -->
+        <div id="facturacion" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>🧾 Ventas Pendientes de Facturación</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Total</th>
+                                    <th>Método Pago</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ventasPendientesFacturacionBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 40px; color: #6b7280;">
+                                        No hay ventas pendientes de facturación
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📄 Facturas Emitidas</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° Factura</th>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Detalle</th>
+                                    <th>Total</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="facturasTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">
+                                        No hay facturas registradas
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Créditos/CxC -->
+        <div id="creditos" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>💳 Nuevo Crédito</h2>
+                    <form id="creditoForm">
+                        <div class="form-group">
+                            <label>Cliente</label>
+                            <select id="creditoCliente" required>
+                                <option value="">Seleccionar cliente...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Monto</label>
+                            <input type="number" id="creditoMonto" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Vencimiento</label>
+                            <input type="date" id="creditoVencimiento" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción</label>
+                            <input type="text" id="creditoDescripcion" placeholder="Concepto del crédito">
+                        </div>
+                        <button type="submit" class="btn btn-warning" style="width: 100%;">Registrar Crédito</button>
+                    </form>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📋 Créditos y CxC</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Monto</th>
+                                    <th>Vencimiento</th>
+                                    <th>Descripción</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="creditosTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">
+                                        No hay créditos registrados
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuentas x Pagar -->
+        <div id="cxp" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>💸 Nueva Cuenta por Pagar</h2>
+                    <form id="cxpForm">
+                        <div class="form-group">
+                            <label>Proveedor</label>
+                            <select id="cxpProveedor" required>
+                                <option value="">Seleccionar proveedor...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Monto</label>
+                            <input type="number" id="cxpMonto" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Vencimiento</label>
+                            <input type="date" id="cxpVencimiento" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción</label>
+                            <input type="text" id="cxpDescripcion" placeholder="Concepto de la deuda">
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">Registrar CxP</button>
+                    </form>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📋 Cuentas por Pagar</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Proveedor</th>
+                                    <th>Monto</th>
+                                    <th>Vencimiento</th>
+                                    <th>Descripción</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cxpTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">
+                                        No hay cuentas por pagar registradas
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventario -->
+        <div id="inventario" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>📦 Agregar Producto</h2>
+                    <form id="productoForm">
+                        <div class="form-group">
+                            <label>Nombre del Producto</label>
+                            <input type="text" id="productoNombre" placeholder="Ej: Camiseta Polo" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Código/SKU</label>
+                                <input type="text" id="productoCodigo" placeholder="SKU001" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Categoría</label>
+                                <select id="productoCategoria" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="ropa">Ropa</option>
+                                    <option value="electronica">Electrónica</option>
+                                    <option value="hogar">Hogar</option>
+                                    <option value="deportes">Deportes</option>
+                                    <option value="otros">Otros</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Precio de Compra</label>
+                                <input type="number" id="productoCompra" step="1" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Precio de Venta</label>
+                                <input type="number" id="productoVenta" step="1" min="0" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Stock Inicial</label>
+                                <input type="number" id="productoStock" min="0" value="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Stock Mínimo</label>
+                                <input type="number" id="productoMinimo" min="0" value="5" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Proveedor</label>
+                            <select id="productoProveedor">
+                                <option value="">Sin proveedor</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">📦 Agregar Producto</button>
+                    </form>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📋 Lista de Productos</h2>
+                    <div class="search-bar">
+                        <input type="text" id="searchProductos" placeholder="Buscar productos...">
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Stock</th>
+                                    <th>Precio Compra</th>
+                                    <th>Precio Venta</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productosTableBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 40px; color: #6b7280;">
+                                        No hay productos registrados
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clientes -->
+        <div id="clientes" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>👤 Agregar Cliente</h2>
+                    <form id="clienteForm">
+                        <div class="form-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="clienteNombre" placeholder="Juan Pérez" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="text" id="clienteTelefono" placeholder="Ej: 3001234567">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="clienteEmail" placeholder="cliente@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección</label>
+                            <input type="text" id="clienteDireccion" placeholder="Dirección del cliente">
+                        </div>
+                        <button type="submit" class="btn btn-warning" style="width: 100%;">Agregar Cliente</button>
+                    </form>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📋 Lista de Clientes</h2>
+                    <div class="search-bar">
+                        <input type="text" id="searchClientes" placeholder="Buscar clientes...">
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Teléfono</th>
+                                    <th>Email</th>
+                                    <th>Dirección</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientesTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
+                                        No hay clientes registrados
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proveedores -->
+        <div id="proveedores" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>🏢 Agregar Proveedor</h2>
+                    <form id="proveedorForm">
+                        <div class="form-group">
+                            <label>Nombre del Proveedor</label>
+                            <input type="text" id="proveedorNombre" placeholder="Proveedor S.A." required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contacto</label>
+                            <input type="text" id="proveedorContacto" placeholder="Ej: 3101234567">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="proveedorEmail" placeholder="proveedor@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección</label>
+                            <input type="text" id="proveedorDireccion" placeholder="Dirección del proveedor">
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">Agregar Proveedor</button>
+                    </form>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📋 Lista de Proveedores</h2>
+                    <div class="search-bar">
+                        <input type="text" id="searchProveedores" placeholder="Buscar proveedores...">
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Contacto</th>
+                                    <th>Email</th>
+                                    <th>Dirección</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="proveedoresTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
+                                        No hay proveedores registrados
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <div id="alertas" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>🔔 Alertas y Notificaciones</h2>
+                    <div id="alertasList">
+                        <div class="alert-item">
+                            <h4>📦 Productos con Stock Bajo</h4>
+                            <div id="alertasStockBajo"></div>
+                        </div>
+                        <div class="alert-item">
+                            <h4>💳 Créditos Vencidos</h4>
+                            <div id="alertasCreditosVencidos"></div>
+                        </div>
+                        <div class="alert-item">
+                            <h4>💸 Cuentas por Pagar Vencidas</h4>
+                            <div id="alertasCxpVencidas"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reportes -->
+        <div id="reportes" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📈 Reportes</h2>
+                    <div>
+                        <button class="btn" onclick="generarReporte('dia')">Día</button>
+                        <button class="btn" onclick="generarReporte('semana')">Semana</button>
+                        <button class="btn" onclick="generarReporte('mes')">Mes</button>
+                        <button class="btn" onclick="exportarDatos()">Exportar Datos</button>
+                    </div>
+                    <div style="margin-top: 30px;">
+                        <strong>Ventas totales:</strong> <span id="reporteVentasTotales">$0</span><br>
+                        <strong>Productos registrados:</strong> <span id="reporteProductosTotales">0</span><br>
+                        <strong>Clientes registrados:</strong> <span id="reporteClientesTotales">0</span><br>
+                        <strong>Productos más vendidos:</strong> <span id="reporteTopProductos">-</span><br>
+                        <strong>Ganancias/Pérdidas:</strong> <span id="reporteGanancias">$0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usuarios -->
+        <div id="usuarios" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>👤 Gestión de Usuarios</h2>
+                    <form id="usuarioForm">
+                        <div class="form-group">
+                            <label>Nombre de Usuario</label>
+                            <input type="text" id="usuarioNombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña</label>
+                            <input type="password" id="usuarioPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rol</label>
+                            <select id="usuarioRol" required>
+                                <option value="admin">Administrador</option>
+                                <option value="vendedor">Vendedor</option>
+                                <option value="cajero">Cajero</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">Registrar Usuario</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asegúrate de que el script esté correctamente cargado -->
+    <script src="main.js"></script>
+</body>
+</html>
